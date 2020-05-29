@@ -42,5 +42,5 @@ python test_my_dataset.py --backbone resnet  --workers 4 \
 
 
 ## License
-The source code and model is released under Apache 2.0 license.
+The source code and model is released under [Apache 2.0 license](./LICENSE).
 
