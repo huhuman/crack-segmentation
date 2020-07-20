@@ -9,6 +9,9 @@ DATA_DIR = '/home/aicenter/Documents/hsu/data/Crack_Augmented/image/'
 
 
 def main():
+    '''
+    apply any transform method to the training image for image enhancement or noise reduction
+    '''
     image_paths = [DATA_DIR+filename for filename in os.listdir(DATA_DIR)]
     folder_name = DATA_DIR.split('/')[-3]
     save_dir = DATA_DIR + '../../' + folder_name + '_Trans/'

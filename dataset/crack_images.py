@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 import cv2
 import os
 import numpy as np
+from detectron2.structures import BoxMode
 
 
 def isimage(filename):
@@ -10,6 +11,62 @@ def isimage(filename):
         'jpg', 'png', 'JPEG', 'PNG', 'jpeg'
     ]
     return filename.split('.')[-1] in IMAGE_FORMAT
+
+
+def get_cracks_dicts(img_dir):
+    dataset_dicts = []
+    image_paths = list(sorted(os.listdir(img_dir + 'image/')))
+    mask_paths = None
+    if os.path.exists(img_dir+'mask/'):
+        mask_paths = list(sorted(os.listdir(img_dir+'mask/')))
+    for idx, v in enumerate(image_paths):
+        record = {}
+
+        filename = os.path.join(img_dir, 'image/', v)
+        height, width = cv2.imread(filename).shape[:2]
+
+        record["file_name"] = filename
+        record["image_id"] = idx
+        record["height"] = height
+        record["width"] = width
+
+        if mask_paths:
+            mask_path = img_dir + "mask/" + mask_paths[idx]
+            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # HxWxC
+            contours, _ = cv2.findContours(
+                mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+            objs = []
+            for cnt in contours:
+                approx = cv2.approxPolyDP(
+                    cnt, 0.009 * cv2.arcLength(cnt, True), True)
+                if approx.shape[0] < 3:
+                    continue
+                # cv2.drawContours(image, [approx], 0, (0, 0, 255), 1)
+                # get bounding box coordinates for each mask
+                px = [pos[0][0] for pos in approx]
+                py = [pos[0][1] for pos in approx]
+                poly = [(x + 0.5, y + 0.5) for x, y in zip(px, py)]
+                poly = [p for x in poly for p in x]
+                obj = {
+                    "bbox": [np.min(px), np.min(py), np.max(px), np.max(py)],
+                    "bbox_mode": BoxMode.XYXY_ABS,
+                    "segmentation": [poly],
+                    "category_id": 0,
+                    "iscrowd": 0
+                }
+                objs.append(obj)
+            record["annotations"] = objs
+        else:
+            record["annotations"] = [{
+                "bbox": [0, 0, 0, 0],
+                "bbox_mode": BoxMode.XYXY_ABS,
+                "segmentation": [(0, 0), (0, 0), (0, 0)],
+                "category_id": 0,
+                "iscrowd": 0
+            }]
+        dataset_dicts.append(record)
+    return dataset_dicts
 
 
 class CrackImagesForSegmentation(Dataset):

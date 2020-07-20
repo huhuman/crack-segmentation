@@ -18,15 +18,16 @@ import torch
 
 '''
 execute script example:
-CUDA_VISIBLE_DEVICES=0 python train_my_dataset.py --backbone resnet --lr 0.007 --workers 4 \
+python train_my_dataset.py --backbone resnet --lr 0.0007 --workers 4 \
     --use-sbd --epochs 20 --batch-size 4 --gpu-ids 0 --checkname deeplab-resnet --dataset customed
+python train_my_dataset.py --backbone resnet --lr 0.0007 --workers 4 \
+    --use-sbd --epochs 20 --batch-size 4 --gpu-ids 0 --checkname deeplab-resnet --dataset customed \
+        --resume '../../weights/deeplab-resnet.pth.tar' --ft
 '''
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# DATASET_DIR = '/home/aicenter/Documents/hsu/data/Crack_Augmented/'
-DATASET_DIR = '/home/aicenter/Documents/hsu/data/Concrete-Crack/'
-# DATASET_DIR = '/home/aicenter/Documents/hsu/data/Crack_Augmented_Trans/'
-VAL_DIR = '/home/aicenter/Documents/hsu/data/validation/'
+DATASET_DIR = '/home/aicenter/Documents/hsu/data/CC140+73+22_Augmented/'
+VAL_DIR = '/home/aicenter/Documents/hsu/data/CC140+73+22_validation/'
 
 
 class Trainer(object):
@@ -41,7 +42,7 @@ class Trainer(object):
         self.writer = self.summary.create_summary()
 
         # Define Dataloader
-        dataset_val = CrackImagesForSegmentation(args, VAL_DIR)
+        dataset_val = CrackImagesForSegmentation(args, VAL_DIR, mode='val')
         self.val_loader = torch.utils.data.DataLoader(
             dataset_val, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
         dataset_train = CrackImagesForSegmentation(args, DATASET_DIR)
@@ -101,14 +102,18 @@ class Trainer(object):
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
             if args.cuda:
-                self.model.module.load_state_dict(checkpoint['state_dict'])
+                model_dict = self.model.module.state_dict()
+                pretrained_dict = {
+                    k: v for k, v in checkpoint['state_dict'].items() if 'last_conv.8' not in k}
+                model_dict.update(pretrained_dict)
+                self.model.module.load_state_dict(model_dict)
             else:
                 self.model.load_state_dict(checkpoint['state_dict'])
-            if not args.ft:
-                self.optimizer.load_state_dict(checkpoint['optimizer'])
-            self.best_pred = checkpoint['best_pred']
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(args.resume, checkpoint['epoch']))
+            # if not args.ft:
+            #     self.optimizer.load_state_dict(checkpoint['optimizer'])
+            # self.best_pred = checkpoint['best_pred']
+            # print("=> loaded checkpoint '{}' (epoch {})"
+            #       .format(args.resume, checkpoint['epoch']))
 
         # Clear start epoch if fine-tuning
         if args.ft:
@@ -192,7 +197,7 @@ class Trainer(object):
             Acc, Acc_class, mIoU, FWIoU))
         print('Loss: %.3f' % test_loss)
 
-        new_pred = mIoU
+        new_pred = mIoU  # control by the best mIoU
         if new_pred > self.best_pred:
             is_best = True
             self.best_pred = new_pred

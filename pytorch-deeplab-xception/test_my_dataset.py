@@ -14,17 +14,14 @@ import cv2
 import os
 '''
 execute script example:
-CUDA_VISIBLE_DEVICES=0 python test_my_dataset.py --backbone resnet  --workers 4 \
+python test_my_dataset.py --backbone resnet  --workers 4 \
     --use-sbd --batch-size 1 --gpu-ids 0 --checkname deeplab-resnet --dataset customed
 '''
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# MODEL_DIR = 'run/customed/deeplab-resnet/experiment_5/model_best.pth.tar'
-MODEL_DIR = 'run/customed/deeplab-resnet/600_aug/model_best.pth.tar'
-# TEST_DIR = '/home/aicenter/Documents/hsu/data/test_ceci/640xh/256x256/'
-# TEST_DIR = '/home/aicenter/Documents/hsu/data/test_dataset/tw_labels/datasets/'
-# TEST_DIR = '/home/aicenter/Documents/hsu/data/test_dataset/test_seg/'
-TEST_DIR = '/home/aicenter/Documents/hsu/data/test_dataset/tw_labels/datasets/'
+MODEL_DIR = 'run/customed/deeplab-resnet/CC213_Augmented/model_best.pth.tar'
+# TEST_DIR = '/home/aicenter/Documents/hsu/data/test_dataset/test_ceci/640xh/256x256/'
+TEST_DIR = '/home/aicenter/Documents/hsu/data/CC213_validation/'
 
 
 if __name__ == "__main__":

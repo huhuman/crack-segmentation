@@ -47,10 +47,17 @@ def ReConstructTunnelImage(num_w, num_h, crop_images, preds):
 if __name__ == "__main__":
     # tunnel_image = cv2.imread('../data/test/tunnel.tif')
     # height, width, _ = tunnel_image.shape
-    crop_h, crop_w = (256, 256)
-    test_path = '../data/test_ceci/640xh/%sx%s/' % (crop_h, crop_w)
-    img_files = [
-        test_path + filename for filename in os.listdir(test_path) if filename.endswith('.png')]
+    # crop_h, crop_w = (256, 256)
+    # test_path = '../data/test_ceci/640xh/%sx%s/' % (crop_h, crop_w)
+    test_path = '/home/aicenter/Documents/hsu/data/public_dataset/crack_segmentation_dataset/image/'
+
+    # Check numbers of noncrack images
+    # img_files = [1 for filename in os.listdir(
+    #     test_path) if 'noncrack_noncrack' in filename]
+    # print('Noncrack images number=', sum(img_files))
+    # assert False, 'Stopping'
+
+    img_files = [test_path + filename for filename in os.listdir(test_path)]
     img_files.sort()
 
     data_transforms = transforms.Compose([
@@ -58,47 +65,67 @@ if __name__ == "__main__":
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
+    all_predictions = np.array([])
+    split_size = 25
+    unit_len = int(len(img_files)/split_size) + 1
+    for n in range(split_size):
+        end_index = min((n+1)*unit_len, len(img_files))
+        img_files_split = img_files[n*unit_len:end_index]
+        inputs, images = [], []
+        for img_file in img_files_split:
+            image = cv2.imread(img_file)
+            # images.append(image)
+            image = data_transforms(image)
+            inputs.append(image)
 
-    inputs, images = [], []
-    for img_file in img_files:
-        image = cv2.imread(img_file)
-        # images.append(image)
-        image = data_transforms(image)
-        inputs.append(image)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        inputs = torch.stack(inputs)
+        inputs = inputs.to(device)
+        res_model = models.resnet18(pretrained=False)
+        num_ftrs = res_model.fc.in_features
+        # Here the size of each output sample is set to 2 : crack/uncrack
+        res_model.fc = torch.nn.Linear(num_ftrs, 2)
+        res_model.load_state_dict(torch.load(
+            'models/classification/classify_05061718.pkl'))
+        res_model.to(device)
+        res_model.eval()
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    inputs = torch.stack(inputs)
-    inputs = inputs.to(device)
-    res_model = models.resnet18(pretrained=False)
-    num_ftrs = res_model.fc.in_features
-    # Here the size of each output sample is set to 2 : crack/uncrack
-    res_model.fc = torch.nn.Linear(num_ftrs, 2)
-    res_model.load_state_dict(torch.load('models/05061718.pkl'))
-    res_model.to(device)
-    res_model.eval()
+        # num_w = math.ceil(width/crop_w)
+        # num_h = math.ceil(height/crop_h)
 
-    # num_w = math.ceil(width/crop_w)
-    # num_h = math.ceil(height/crop_h)
+        _preds = Predicts(model=res_model, batch_size=10, inputs=inputs)
+        all_predictions = np.append(all_predictions, _preds)
 
-    preds = Predicts(model=res_model, batch_size=10, inputs=inputs)
+        # for pred, img_file in zip(preds, img_files):
+        #     split_path = img_file.split('/')
+        #     img_name = split_path[-1]
+        #     save_dir = '/'.join(split_path[:-2])
 
-    for pred, img_file in zip(preds, img_files):
+        #     save_dir += '/result_%sx%s/' % (crop_h, crop_w)
+        #     os.makedirs(save_dir, exist_ok=True)
+        #     save_dir_crack = save_dir + 'crack/'
+        #     os.makedirs(save_dir_crack, exist_ok=True)
+        #     save_dir_noncrack = save_dir + 'noncrack/'
+        #     os.makedirs(save_dir_noncrack, exist_ok=True)
+        #     if pred == 1:
+        #         shutil.copyfile(img_file,
+        #                         os.path.join(save_dir_crack, img_name))
+        #     else:
+        #         shutil.copyfile(img_file,
+        #                         os.path.join(save_dir_noncrack, img_name))
+
+    conf_matrix = np.zeros((2, 2))
+    for pred, img_file in zip(all_predictions, img_files):
         split_path = img_file.split('/')
         img_name = split_path[-1]
-        save_dir = '/'.join(split_path[:-2])
-
-        save_dir += '/result_%sx%s/' % (crop_h, crop_w)
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        save_dir_crack = save_dir + 'crack/'
-        if not os.path.exists(save_dir_crack):
-            os.mkdir(save_dir_crack)
-        save_dir_noncrack = save_dir + 'noncrack/'
-        if not os.path.exists(save_dir_noncrack):
-            os.mkdir(save_dir_noncrack)
-        if pred == 1:
-            shutil.copyfile(img_file,
-                            os.path.join(save_dir_crack, img_name))
-        else:
-            shutil.copyfile(img_file,
-                            os.path.join(save_dir_noncrack, img_name))
+        gt = int('noncrack_noncrack' not in img_name)
+        conf_matrix[int(pred), gt] += 1
+    print(conf_matrix)
+    Acc = (conf_matrix[0, 0]+conf_matrix[1, 1])/sum(conf_matrix)
+    Precision = (conf_matrix[1, 1])/(conf_matrix[1, 1]+conf_matrix[1, 0])
+    Recall = (conf_matrix[1, 1])/(conf_matrix[1, 1]+conf_matrix[0, 1])
+    F1_Score = 2/(1/Precision+1/Recall)
+    print('Acc=', Acc)
+    print('Precision=', Precision)
+    print('Recall=', Recall)
+    print('F1_Score=', F1_Score)

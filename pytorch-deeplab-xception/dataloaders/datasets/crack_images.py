@@ -77,7 +77,7 @@ class CrackImagesForSegmentation(Dataset):
 
     NUM_CLASSES = 2  # should include background
 
-    def __init__(self, args, root_dir=None):
+    def __init__(self, args, root_dir=None, mode='train'):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -86,6 +86,7 @@ class CrackImagesForSegmentation(Dataset):
         self.root = root_dir
         self.imgs = list(sorted(os.listdir(root_dir+'image/')))
         self.masks = list(sorted(os.listdir(root_dir+'mask/')))
+        self.mode = mode
 
     def __len__(self):
         return len(self.imgs)
@@ -101,8 +102,10 @@ class CrackImagesForSegmentation(Dataset):
         _target = Image.fromarray(mask)
 
         sample = {'image': _img, 'label': _target}
-
-        return self.transform_tr(sample)
+        if self.mode == 'train':
+            return self.transform_tr(sample)
+        else:
+            return self.transform_val(sample)
 
     def transform_tr(self, sample):
         composed_transforms = transforms.Compose([
@@ -115,6 +118,54 @@ class CrackImagesForSegmentation(Dataset):
             tr.ToTensor()])
 
         return composed_transforms(sample)
+
+    def transform_val(self, sample):
+
+        composed_transforms = transforms.Compose([
+            tr.FixScaleCrop(crop_size=513),
+            tr.Normalize(mean=(0.485, 0.456, 0.406),
+                         std=(0.229, 0.224, 0.225)),
+            tr.ToTensor()])
+
+        return composed_transforms(sample)
+
+
+class ValCrackImagesForSegmentation(Dataset):
+    """Created for Crackdataset"""
+
+    NUM_CLASSES = 2  # should include background
+
+    def __init__(self, root_dir=None):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+        """
+        self.root = root_dir
+        self.imgs = list(sorted(os.listdir(root_dir+'image/')))
+        self.masks = list(sorted(os.listdir(root_dir+'mask/')))
+
+    def __len__(self):
+        return len(self.imgs)
+
+    def __getitem__(self, idx):
+        img_path = self.root + "image/" + self.imgs[idx]
+        mask_path = self.root + "mask/" + self.masks[idx]
+        # img = cv2.imread(img_path)
+        # mask = cv2.imread(mask_path)/255  # HxWxC
+        _img = Image.open(img_path).convert('RGB')
+        mask = np.array(Image.open(mask_path).convert('L'))/255
+        # mask = np.array(Image.open(mask_path))/255
+        _target = torch.from_numpy(
+            np.array(Image.fromarray(mask)).astype(np.float32)).float()
+        return {'image': self.transform_val(_img), 'label': _target, 'filename': self.imgs[idx]}
+
+    def transform_val(self, image):
+        # using torchvision.transform instead of customized tr
+        composed_transforms = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        return composed_transforms(image)
 
 
 class TestCrackImagesForSegmentation(Dataset):
@@ -142,6 +193,7 @@ class TestCrackImagesForSegmentation(Dataset):
         return {'image': self.transform_val(_img), 'filename': self.imgs[idx]}
 
     def transform_val(self, image):
+        # using torchvision.transform instead of customized tr
         composed_transforms = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
