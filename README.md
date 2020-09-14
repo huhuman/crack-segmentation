@@ -1,4 +1,4 @@
-# Segmentation on Crack Image Dataset
+# STOA Deep Learning Segmentation Model on Crack Images
 ![demo](https://github.com/huhuman/crack-segmentation/blob/master/demo/result.png?raw=true)
 ## Introduction
 This repo can provide those who wants to devlop the automation in inspection with a strong foundation for crack identification. Based on [Detectron2](##Reference), we had implemented two well-know algorithms of image segmentation, [Mask R-CNN](##Reference) and [DeepLabv3+](##Reference). Furthermore, a limited dataset combining public sources and our own sources is also open to reproduce our work, and the pre-trained weights are also available for any extended application. The detail of code usage (e.g. how to train/fine-tune a model, predict an image, evaluate the performance) is well-documented in the below.
@@ -63,7 +63,7 @@ python test_maskrcnn.py --path [TEST_FOLDER | IMAGE_PATH] \
 ```
 ## Model
 | Model| Backbone | Dataset | <center>Val</center>mIoU | <center>Links</center> |
-| - | - | - | - | - | - |
+| - | - | - | - | - | 
 |<font color=green>Mask R-CNN</font>| [X101+FPN](https://github.com/facebookresearch/detectron2/blob/master/configs/COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml) | Tunnel | 65.0% | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [[Weight]](https://drive.google.com/file/d/1V05QQJVTyFOJoVJtCeJJp7_7RRB18K_F/view?usp=sharing)
 |<font color=red>DeepLabv3+</font>| [R103-DC5]((https://github.com/facebookresearch/detectron2/tree/master/projects/DeepLab)) | Tunnel | - | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [Weight]
 |<font color=green>Mask R-CNN</font> | [X101+FPN](https://github.com/facebookresearch/detectron2/blob/master/configs/COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml) | Welding | 75.5% | [[Publisher]](http://www.schm.org.cn/#/IPC-SHM,2020/project1) [[Paper]]() [[Weight]](https://drive.google.com/file/d/1F5NPdm0lQccahXmrYG1Rzj777sZNjRuQ/view?usp=sharing) |
