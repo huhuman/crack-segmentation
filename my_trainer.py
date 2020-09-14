@@ -133,8 +133,6 @@ class CrackTrainer(DefaultTrainer):
     are working on a new research project. In that case you can write your
     own training loop. You can use "tools/plain_train_net.py" as an example.
     """
-    _best_mIoU = -1
-
     @classmethod
     def build_evaluator(cls, cfg, output_folder=None):
         if output_folder is None:
@@ -146,43 +144,3 @@ class CrackTrainer(DefaultTrainer):
             conf_threshold=cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST,
             output_dir=output_folder,
         )
-
-
-class CascadeTrainer(DefaultTrainer):
-    """
-    We use the "DefaultTrainer" which contains pre-defined default logic for
-    standard training workflow. They may not work for you, especially if you
-    are working on a new research project. In that case you can use the cleaner
-    "SimpleTrainer", or write your own training loop. You can use
-    "tools/plain_train_net.py" as an example.
-    """
-
-    @classmethod
-    def build_evaluator(cls, cfg, output_folder=None):
-        if output_folder is None:
-            output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
-        return CrackSegEvaluator(
-            cfg.DATASETS.TEST[0],
-            distributed=True,
-            num_classes=1,
-            conf_threshold=cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST,
-            output_dir=output_folder,
-        )
-
-    @classmethod
-    def test_with_TTA(cls, cfg, model):
-        logger = logging.getLogger("detectron2.trainer")
-        # In the end of training, run an evaluation with TTA
-        # Only support some R-CNN models.
-        logger.info("Running inference with test-time augmentation ...")
-        model = GeneralizedRCNNWithTTA(cfg, model)
-        evaluators = [
-            cls.build_evaluator(
-                cfg, name, output_folder=os.path.join(
-                    cfg.OUTPUT_DIR, "inference_TTA")
-            )
-            for name in cfg.DATASETS.TEST
-        ]
-        res = cls.test(cfg, model, evaluators)
-        res = OrderedDict({k + "_TTA": v for k, v in res.items()})
-        return res

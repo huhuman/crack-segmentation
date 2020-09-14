@@ -1,4 +1,4 @@
-/tmp_code/*
-/pytorch-deeplab-xception/run/*
 /models/*
+/deeplab/configs/*
 .ipynb_checkpoints/*
+*.ipynb

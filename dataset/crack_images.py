@@ -13,9 +13,13 @@ def isimage(filename):
     return filename.split('.')[-1] in IMAGE_FORMAT
 
 
-def get_cracks_dicts(img_dir):
+def get_cracks_dicts_instance(img_dir):
     dataset_dicts = []
-    image_paths = list(sorted(os.listdir(img_dir + 'image/')))
+    image_paths = None
+    if os.path.exists(img_dir + 'image/'):
+        image_paths = list(sorted(os.listdir(img_dir + 'image/')))
+    else:
+        image_paths = list(sorted(os.listdir(img_dir)))
     mask_paths = None
     if os.path.exists(img_dir+'mask/'):
         mask_paths = list(sorted(os.listdir(img_dir+'mask/')))
@@ -65,6 +69,28 @@ def get_cracks_dicts(img_dir):
                 "category_id": 0,
                 "iscrowd": 0
             }]
+        dataset_dicts.append(record)
+    return dataset_dicts
+
+
+def get_cracks_dicts_semantic(img_dir):
+    dataset_dicts = []
+    image_paths = list(sorted(os.listdir(img_dir + 'image/')))
+    mask_paths = None
+    if os.path.exists(img_dir+'mask/'):
+        mask_paths = list(sorted(os.listdir(img_dir+'semantic_mask/')))
+    for idx, v in enumerate(image_paths):
+        record = {}
+
+        image_path = os.path.join(img_dir, 'image/', v)
+        height, width = cv2.imread(image_path).shape[:2]
+        mask_path = img_dir + "mask/" + mask_paths[idx]
+
+        record["file_name"] = image_path
+        record["sem_seg_file_name"] = mask_path
+        record["height"] = height
+        record["width"] = width
+
         dataset_dicts.append(record)
     return dataset_dicts
 
