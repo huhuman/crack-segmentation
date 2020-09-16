@@ -130,7 +130,7 @@ def setup(args):
 
 def main(args):
     cfg = setup(args)
-
+    cfg.MODEL.SEM_SEG_HEAD.NUM_CLASSES = 2
     data_dir = {"train": args.train_dir, "val": args.val_dir}
     for d in ["train", "val"]:
         DatasetCatalog.register(
@@ -149,7 +149,6 @@ def main(args):
     if args.model_path:
         cfg.MODEL.WEIGHTS = args.model_path
 
-    cfg.MODEL.SEM_SEG_HEAD.PROJECT_CHANNELS = [1]
     cfg.SOLVER.IMS_PER_BATCH = args.batch_size
     cfg.SOLVER.BASE_LR = args.lr  # pick a good LR
     cfg.SOLVER.MAX_ITER = args.iteration

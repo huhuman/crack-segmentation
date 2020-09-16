@@ -20,7 +20,21 @@ def inference(predictor, image_path, mask_color, confidence=0.5):
     mask = np.sum(masks, axis=0) > 0
     roi = im[mask]
     im[mask] = ((0.5 * mask_color) + (0.5 * roi)).astype("uint8")
-    return im
+    return im, mask
+
+
+def print_evaluation(evaluator):
+    MIoU = np.diag(evaluator.confusion_matrix) / (
+        np.sum(evaluator.confusion_matrix, axis=1) + np.sum(evaluator.confusion_matrix, axis=0) -
+        np.diag(evaluator.confusion_matrix))
+    Acc = evaluator.Pixel_Accuracy()
+    Acc_class = evaluator.Pixel_Accuracy_Class()
+    mIoU = evaluator.Mean_Intersection_over_Union()
+    FWIoU = evaluator.Frequency_Weighted_Intersection_over_Union()
+    print('Validation:')
+    print('mIoU:{}'.format(MIoU))
+    print("Acc:{}, Acc_class:{}, mIoU:{}, fwIoU: {}".format(
+        Acc, Acc_class, mIoU, FWIoU))
 
 
 def test(args):
@@ -40,6 +54,8 @@ def test(args):
 
     if os.path.isdir(test_dir):
         save_dir = test_dir + '/result/'
+        if not os.path.exists(test_dir + 'image/'):
+            save_dir = test_dir + '../result/'
         os.makedirs(save_dir, exist_ok=True)
         DatasetCatalog.clear()
         DatasetCatalog.register(
@@ -49,13 +65,34 @@ def test(args):
         cfg.DATASETS.TEST = ("cracks_test", )
         test_loader = build_detection_test_loader(cfg, "cracks_test")
 
-        for idx, d in enumerate(test_loader):
-            file_name = d[0]["file_name"]
-            if idx % 25 == 0:
-                print('Processing %s...' % (file_name))
-            prediction = inference(
-                predictor, file_name, mask_color,  cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST)
-            cv2.imwrite(save_dir + file_name.split('/')[-1], prediction)
+        if args.eval:
+            assert os.path.exists(
+                test_dir + 'mask/'), print("Files not exist: %s" % (test_dir + 'mask/'))
+            from utils.metrics import Evaluator
+            evaluator = Evaluator(2)
+            evaluator.reset()
+            for idx, d in enumerate(test_loader):
+                file_name = d[0]["file_name"]
+                if idx % 25 == 0:
+                    print('Processing %s...' % (file_name))
+                visualization, mask = inference(
+                    predictor, file_name, mask_color,  cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST)
+                target = cv2.imread(d[0]['seg_file_name'],
+                                    cv2.IMREAD_GRAYSCALE)
+                evaluator.add_batch(target/255, mask)
+                if not args.save:
+                    cv2.imwrite(save_dir + file_name.split('/')
+                                [-1], visualization)
+            print_evaluation(evaluator)
+        else:
+            for idx, d in enumerate(test_loader):
+                file_name = d[0]["file_name"]
+                if idx % 25 == 0:
+                    print('Processing %s...' % (file_name))
+                visualization, _ = inference(
+                    predictor, file_name, mask_color,  cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST)
+                cv2.imwrite(save_dir + file_name.split('/')
+                            [-1], visualization)
     else:
         save_path = test_dir[:-4] + "_prediction" + test_dir[-4:]
         print('Processing %s...' % (test_dir))
@@ -71,5 +108,9 @@ if __name__ == "__main__":
                         help='Root directory of testing data (or direct image path). Note that there must be subfolder image/ under the directory.')
     parser.add_argument('--weight', dest='model_path', type=str, required=True,
                         default=None, help='path of weight file.')
+    parser.add_argument("--eval", action="store_true",
+                        help="add it to perform evaluation")
+    parser.add_argument("--save", action="store_true",
+                        help="add it to save predictions")
     args = parser.parse_args()
     test(args)

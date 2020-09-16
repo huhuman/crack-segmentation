@@ -27,7 +27,7 @@ The code was tested under the below environment
 * GPU=GeForce RTX 2080 SUPER
 ## Installation
 1. To install required python packages
-```bash=
+```bash!=
 pip3 -r requirement.txt # add --user if you do not have root permission
 ```
 2. To build [***detectron2***](https://github.com/facebookresearch/detectron2) benchmark, pls follow instruction in the original git repo: [INSTALL.md](https://github.com/facebookresearch/detectron2/blob/master/INSTALL.md)
@@ -53,7 +53,7 @@ https://github.com/khanhha/crack_segmentation integrated multiple sources of cra
 
 ## Getting Started
 1. To run Mask R-CNN inference:
-```bash=
+```bash!=
 python test_maskrcnn.py --path [TEST_FOLDER | IMAGE_PATH] \
                         --weight [WEIGHT_PATH]
 ```
@@ -63,14 +63,14 @@ python test_maskrcnn.py --path [TEST_FOLDER | IMAGE_PATH] \
 ```
 ## Model
 | Model| Backbone | Dataset | <center>Val</center>mIoU | <center>Links</center> |
-| - | - | - | - | - | 
+| - | - | - | - | - |
 |<font color=green>Mask R-CNN</font>| [X101+FPN](https://github.com/facebookresearch/detectron2/blob/master/configs/COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml) | Tunnel | 65.0% | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [[Weight]](https://drive.google.com/file/d/1V05QQJVTyFOJoVJtCeJJp7_7RRB18K_F/view?usp=sharing)
 |<font color=red>DeepLabv3+</font>| [R103-DC5]((https://github.com/facebookresearch/detectron2/tree/master/projects/DeepLab)) | Tunnel | - | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [Weight]
 |<font color=green>Mask R-CNN</font> | [X101+FPN](https://github.com/facebookresearch/detectron2/blob/master/configs/COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml) | Welding | 75.5% | [[Publisher]](http://www.schm.org.cn/#/IPC-SHM,2020/project1) [[Paper]]() [[Weight]](https://drive.google.com/file/d/1F5NPdm0lQccahXmrYG1Rzj777sZNjRuQ/view?usp=sharing) |
 |<font color=red>DeepLabv3+</font>| [R103-DC5]((https://github.com/facebookresearch/detectron2/tree/master/projects/DeepLab)) | Welding | - | [[Publisher]](http://www.schm.org.cn/#/IPC-SHM,2020/project1) [[Paper]]() [Weight]
 ## Train/Fine-tune
 1. Mask R-CNN:
-```bash=
+```bash!=
 python train_maskrcnn.py --tdir [TRAINING_DATA_FOLDER_PATH] \
                 --vdir [VALIDATION_DATA_FOLDER_PATH] \
                 --weight [WEIGHT_PATH] \
@@ -80,8 +80,9 @@ python train_maskrcnn.py --tdir [TRAINING_DATA_FOLDER_PATH] \
                 --output [OUTPUT_DIR]
 ```
 ## Evaluate
-```python=
-
+```bash!=
+python test_maskrcnn.py --path [TEST_FOLDER | IMAGE_PATH] \
+                        --weight [WEIGHT_PATH] --eval --save
 ```
 
 > The code here partially originates from https://github.com/jfzhang95/pytorch-deeplab-xception 
@@ -119,3 +120,4 @@ If you use any source code or models of the repository in your work, please use 
 ```
 ## License
 The source code and the models are released under [Apache 2.0 license](./LICENSE).
+
