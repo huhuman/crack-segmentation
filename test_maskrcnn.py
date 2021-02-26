@@ -11,13 +11,27 @@ from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_tes
 from dataset.crack_images import get_cracks_dicts_instance
 from detectron2.engine import DefaultPredictor
 
+'''
+python3 test_maskrcnn.py --path "/home/aicenter/Documents/hsu/data/CECI_Project/chungliao/val_cropped_fixed_512/" \
+    --weight "/home/aicenter/Documents/hsu/crack-detection/models/Mask R-CNN/ongoing_experiments/chungliao/model_final.pth"
 
-def inference(predictor, image_path, mask_color, confidence=0.5):
-    im = cv2.imread(image_path)
+python3 test_maskrcnn.py --path "/home/aicenter/Documents/hsu/data/CECI_Project/chungliao/val_cropped_fixed_512/" \
+    --weight "/home/aicenter/Documents/hsu/crack-detection/models/Mask R-CNN/ongoing_experiments/chungliao-finetune/model_final.pth"
+'''
+
+
+def inference(predictor, image_path, mask_color, confidence=0.5, isgray=True):
+    im = None
+    if isgray:
+        im = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+    else:
+        im = cv2.imread(image_path, )
     outputs = predictor(im)
     masks = outputs['instances'].pred_masks.cpu().numpy()
     masks = masks[outputs['instances'].scores.cpu().numpy() > confidence]
     mask = np.sum(masks, axis=0) > 0
+    im = cv2.imread(image_path, )
     roi = im[mask]
     im[mask] = ((0.5 * mask_color) + (0.5 * roi)).astype("uint8")
     return im, mask
@@ -96,8 +110,9 @@ def test(args):
     else:
         save_path = test_dir[:-4] + "_prediction" + test_dir[-4:]
         print('Processing %s...' % (test_dir))
-        prediction = inference(
+        prediction, _ = inference(
             predictor, test_dir, mask_color,  cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST)
+
         cv2.imwrite(save_path, prediction)
 
 
@@ -112,5 +127,7 @@ if __name__ == "__main__":
                         help="add it to perform evaluation")
     parser.add_argument("--save", action="store_true",
                         help="add it to save predictions")
+    parser.add_argument("--crop", action="store_true",
+                        help="add it to crop input image into 512x512 sub-images")
     args = parser.parse_args()
     test(args)

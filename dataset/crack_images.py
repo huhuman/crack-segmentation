@@ -16,8 +16,10 @@ def isimage(filename):
 def get_cracks_dicts_instance(img_dir):
     dataset_dicts = []
     image_paths = None
+    contains_image_folder = False
     if os.path.exists(img_dir + 'image/'):
         image_paths = list(sorted(os.listdir(img_dir + 'image/')))
+        contains_image_folder = True
     else:
         image_paths = list(sorted(os.listdir(img_dir)))
     mask_paths = None
@@ -26,10 +28,13 @@ def get_cracks_dicts_instance(img_dir):
     for idx, v in enumerate(image_paths):
         record = {}
 
-        filename = os.path.join(img_dir, 'image/', v)
+        filename = os.path.join(
+            img_dir, 'image/', v) if contains_image_folder else os.path.join(img_dir, v)
         height, width = cv2.imread(filename).shape[:2]
 
         record["file_name"] = filename
+        record["seg_file_name"] = os.path.join(
+            img_dir, 'mask/', mask_paths[idx]) if mask_paths else ''
         record["image_id"] = idx
         record["height"] = height
         record["width"] = width
@@ -77,8 +82,10 @@ def get_cracks_dicts_semantic(img_dir):
     dataset_dicts = []
     image_paths = list(sorted(os.listdir(img_dir + 'image/')))
     mask_paths = None
-    if os.path.exists(img_dir+'mask/'):
+    if os.path.exists(img_dir+'semantic_mask/'):
         mask_paths = list(sorted(os.listdir(img_dir+'semantic_mask/')))
+    else:
+        mask_paths = list(sorted(os.listdir(img_dir+'mask/')))
     for idx, v in enumerate(image_paths):
         record = {}
 

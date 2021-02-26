@@ -2,4 +2,5 @@
     "editor.fontFamily": "Hack",
     "editor.fontSize": 16,
     "editor.fontLigatures": true,
+    "python.pythonPath": "/home/aicenter/.virtualenvs/cracks/bin/python",
 }

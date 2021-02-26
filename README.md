@@ -1,10 +1,10 @@
 # STOA Deep Learning Segmentation Model on Crack Images
 ![demo](https://github.com/huhuman/crack-segmentation/blob/master/demo/result.png?raw=true)
 ## Introduction
-This repo can provide those who wants to devlop the automation in inspection with a strong foundation for crack identification. Based on [Detectron2](##Reference), we had implemented two well-know algorithms of image segmentation, [Mask R-CNN](##Reference) and [DeepLabv3+](##Reference). Furthermore, a limited dataset combining public sources and our own sources is also open to reproduce our work, and the pre-trained weights are also available for any extended application. The detail of code usage (e.g. how to train/fine-tune a model, predict an image, evaluate the performance) is well-documented in the below.
+This repo can provide those who wants to devlop the automation in inspection with a benchmark of crack identification. Based on [Detectron2](##Reference), we had implemented two well-known algorithms of image segmentation, [Mask R-CNN](##Reference) and [DeepLabv3+](##Reference). Furthermore, a limited dataset combining public sources and our own sources is also open to reproduce our work, and the pre-trained weights are also available for any extended application. The detail of code usage (e.g. how to train/fine-tune a model, predict an image, evaluate the performance) is well-documented in the below.
 
 **The following shows publications based on the repository**
-* EWSHM2020
+* Hsu, S. H., Chang, T. W., & Chang, C. M. (2020, July). Concrete Surface Crack Segmentation Based on Deep Learning. In European Workshop on Structural Health Monitoring (pp. 24-34). Springer, Cham.
 * IPC-SHM-P1
 
 If this repo helps your work, pls [:star2: Cite us! :star2: ](#Citation)
@@ -13,6 +13,7 @@ If this repo helps your work, pls [:star2: Cite us! :star2: ](#Citation)
 * *2020.05.29: Create repo*
 * *2020.07.20: Add more detail of methods and some codes for testing*
 * *2020.09.16: Implementation of Mask R-CNN*
+* *2021.02.26: Update ipynb files for visualization*
 
 ## TODO
 - [ ] prune unneccessary packages in requirment.txt
@@ -62,7 +63,7 @@ python test_maskrcnn.py --path [TEST_FOLDER | IMAGE_PATH] \
 
 ```
 ## Model
-| Model| Backbone | Dataset | <center>Val</center>mIoU | <center>Links</center> |
+| Model| Backbone | Dataset | <center>Val mIoU</center> | <center>Links</center> |
 | - | - | - | - | - |
 |<font color=green>Mask R-CNN</font>| [X101+FPN](https://github.com/facebookresearch/detectron2/blob/master/configs/COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml) | Tunnel | 65.0% | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [[Weight]](https://drive.google.com/file/d/1V05QQJVTyFOJoVJtCeJJp7_7RRB18K_F/view?usp=sharing)
 |<font color=red>DeepLabv3+</font>| [R103-DC5]((https://github.com/facebookresearch/detectron2/tree/master/projects/DeepLab)) | Tunnel | - | [[Publisher]](http://www.ewshm2020.com/) [[Paper]]() [Weight]
@@ -112,11 +113,16 @@ If you use any source code or models of the repository in your work, please use 
   year={2017}
 }
 ```
-* EWSHM2020
+* Our Work
 ```
-```
-* IPCSHM
-```
+@inproceedings{hsu2020concrete,
+  title={Concrete Surface Crack Segmentation Based on Deep Learning},
+  author={Hsu, Shun-Hsiang and Chang, Ting-Wei and Chang, Chia-Ming},
+  booktitle={European Workshop on Structural Health Monitoring},
+  pages={24--34},
+  year={2020},
+  organization={Springer}
+}
 ```
 ## License
 The source code and the models are released under [Apache 2.0 license](./LICENSE).

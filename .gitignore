@@ -1,4 +1,10 @@
 /models/*
-/deeplab/configs/*
+/coco_eval/
+/tmp/
+/demo/EWSHM/
+/demo/IPCSHM/
+/demo/CECI/
+/pytorch-deeplab-xception/*
+/deeplab/*
 .ipynb_checkpoints/*
-*.ipynb
+# *.ipynb

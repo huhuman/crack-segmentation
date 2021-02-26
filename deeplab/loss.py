@@ -33,3 +33,26 @@ class DeepLabCE(nn.Module):
         top_k_pixels = int(self.top_k_percent_pixels * pixel_losses.numel())
         pixel_losses, _ = torch.topk(pixel_losses, top_k_pixels)
         return pixel_losses.mean()
+
+
+class SegmentationLosses(object):
+    def __init__(self, weight=None, size_average=True, batch_average=True, ignore_index=255, cuda=False, device=None):
+        self.ignore_index = ignore_index
+        self.weight = weight
+        self.size_average = size_average
+        self.batch_average = batch_average
+        self.cuda = cuda
+        self.device = device
+
+    def build_loss(self):
+        return self.CrossEntropyLoss
+
+    def CrossEntropyLoss(self, logit, target):
+        n, _, _, _ = logit.size()
+        criterion = nn.CrossEntropyLoss(weight=self.weight, ignore_index=self.ignore_index,
+                                        size_average=self.size_average)
+        criterion = criterion.to(self.device)
+        loss = criterion(logit, target.long())
+        if self.batch_average:
+            loss /= n
+        return loss

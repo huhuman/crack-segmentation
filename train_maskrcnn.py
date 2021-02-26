@@ -11,9 +11,10 @@ from dataset.crack_images import get_cracks_dicts_instance
 from my_trainer import CrackTrainer
 
 '''
-python train.py --tdir '/home/aicenter/Documents/hsu/data/CECI_Project/chungliao/cropped_fixed_512_Augmented/' \
+python3 train_maskrcnn.py --tdir '/home/aicenter/Documents/hsu/data/CECI_Project/chungliao/cropped_fixed_512_Augmented/' \
     --vdir '/home/aicenter/Documents/hsu/data/CECI_Project/chungliao/val_cropped_fixed_512/' \
-        --weight '/home/aicenter/Documents/hsu/crack-detection/models/CC140+73+22_Augmented/model_final.pth'
+    --weight '/home/aicenter/Documents/hsu/crack-detection/models/CC140+73+22_Augmented/model_final.pth' \
+    --output 'chungliao-finetune/' --iter 50000 --batch 4
 '''
 
 
